@@ -144,6 +144,13 @@ func (sb *SelectBuilder) Where(andExpr ...string) *SelectBuilder {
 	return sb
 }
 
+// Special Case
+func (sb *SelectBuilder) WhereReplace(andExpr ...string) *SelectBuilder {
+	sb.whereExprs = andExpr
+	sb.marker = selectMarkerAfterWhere
+	return sb
+}
+
 // Having sets expressions of HAVING in SELECT.
 func (sb *SelectBuilder) Having(andExpr ...string) *SelectBuilder {
 	sb.havingExprs = append(sb.havingExprs, andExpr...)
