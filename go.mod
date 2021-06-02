@@ -1,8 +1,5 @@
 module github.com/LiShangAn/go-sqlbuilder
 
-go 1.12
+go 1.13
 
-require (
-	github.com/huandu/go-assert v1.1.5
-	github.com/huandu/xstrings v1.3.2
-)
+require github.com/huandu/xstrings v1.3.2
