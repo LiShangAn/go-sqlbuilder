@@ -116,6 +116,14 @@ func (sb *SelectBuilder) Join(table string, onExpr ...string) *SelectBuilder {
 	return sb.JoinWithOption("", table, onExpr...)
 }
 
+func (sb *SelectBuilder) RemoveJoin() *SelectBuilder {
+	sb.marker = selectMarkerAfterJoin
+	sb.joinOptions = nil
+	sb.joinTables = nil
+	sb.joinExprs = nil
+	return sb
+}
+
 // JoinWithOption sets expressions of JOIN with an option.
 //
 // It builds a JOIN expression like
