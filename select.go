@@ -1,6 +1,3 @@
-// Copyright 2018 Huan Du. All rights reserved.
-// Licensed under the MIT license that can be found in the LICENSE file.
-
 package sqlbuilder
 
 import (
@@ -20,6 +17,7 @@ const (
 	selectMarkerAfterOrderBy
 	selectMarkerAfterLimit
 	selectMarkerAfterFor
+	selectMarkerAfterUnion
 )
 
 // JoinOption is the option in JOIN.
@@ -54,7 +52,6 @@ func newSelectBuilder() *SelectBuilder {
 	}
 }
 
-// SelectBuilder is a builder to build SELECT.
 type SelectBuilder struct {
 	Cond
 
@@ -73,6 +70,8 @@ type SelectBuilder struct {
 	offset      int
 	forWhat     string
 
+	union string
+
 	args *Args
 
 	injection *injection
@@ -84,6 +83,19 @@ var _ Builder = new(SelectBuilder)
 // Select sets columns in SELECT.
 func Select(col ...string) *SelectBuilder {
 	return DefaultFlavor.NewSelectBuilder().Select(col...)
+}
+
+// Select sets columns in SELECT.
+func (sb *SelectBuilder) Union(col string) *SelectBuilder {
+	sb.union = col
+	sb.marker = selectMarkerAfterUnion
+	return sb
+}
+
+func (sb *SelectBuilder) RemoveUnion() *SelectBuilder {
+	sb.marker = selectMarkerAfterJoin
+	sb.union = ""
+	return sb
 }
 
 // Select sets columns in SELECT.
@@ -263,6 +275,13 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 	buf.WriteString(strings.Join(sb.tables, ", "))
 	sb.injection.WriteTo(buf, selectMarkerAfterFrom)
 
+	if sb.union != "" {
+		buf.WriteString(" UNION ")
+		buf.WriteString(sb.union)
+
+		sb.injection.WriteTo(buf, selectMarkerAfterUnion)
+	}
+
 	for i := range sb.joinTables {
 		if option := sb.joinOptions[i]; option != "" {
 			buf.WriteRune(' ')
@@ -336,6 +355,13 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 
 		sb.injection.WriteTo(buf, selectMarkerAfterFor)
 	}
+
+	// if len(sb.whereExprs) > 0 {
+	// 	buf.WriteString(" WHERE ")
+	// 	buf.WriteString(strings.Join(sb.whereExprs, " AND "))
+
+	// 	sb.injection.WriteTo(buf, selectMarkerAfterWhere)
+	// }
 
 	return sb.args.CompileWithFlavor(buf.String(), flavor, initialArg...)
 }
